@@ -16,7 +16,7 @@ HYPIXEL_TOKEN = tokens["hypixel_token"]
 bot = commands.Bot(command_prefix="/", case_insensitive=1)
 ach_api = requests.get(f"https://api.hypixel.net/resources/achievements?key={HYPIXEL_TOKEN}&uuid=229f1765-0ca1-4d67-9a41-e7cb198e4832").json()["achievements"]["arcade"]["one_time"]
 
-botstats = Stats()
+bot_stats = Stats()
 
 class Error(Exception):
     pass
@@ -81,7 +81,7 @@ async def stats(ctx, playername):
     )
     embed.set_thumbnail(url=url)
     await m.edit(embed=embed)
-    botstats.add_statsquery(uuid, ctx.author.id)
+    bot_stats.add_statsquery(uuid, ctx.author.id)
 
 @bot.command(aliases=["a", "ach"])
 async def achievements(ctx, playername):
@@ -107,7 +107,7 @@ async def achievements(ctx, playername):
             inline=False
         )
     await m.edit(embed=embed)
-    botstats.add_achievementsquery(uuid, ctx.author.id)
+    bot_stats.add_achievementsquery(uuid, ctx.author.id)
 
 @bot.command()
 async def credits(ctx):
@@ -119,6 +119,22 @@ async def credits(ctx):
         embed=embed,
         allowed_mentions=discord.AllowedMentions(users=False)
     )
+
+@bot.command()
+async def botstats(ctx):
+    achs = bot_stats.sort_achievements()
+    stats = bot_stats.sort_stats()
+
+    embed = discord.Embed(title="Bot Stats")
+    embed.add_field(
+        name="Stats Lookups",
+        value=stats
+    )
+    embed.add_field(
+        name="Achievement Lookups",
+        value=achs
+    )
+    await ctx.send(embed=embed)
 
 """@bot.event
 async def on_message(message):

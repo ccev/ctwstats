@@ -1,4 +1,5 @@
 import json
+import requests
 
 class Stats():
     def __init__(self):
@@ -25,3 +26,19 @@ class Stats():
 
     def add_achievementsquery(self, uuid, user_id):
         self.add_generic(uuid, user_id, "achievements_by")
+
+    def generic_sort(self, type_):
+        s = [(k, len(v[type_])) for k, v in sorted(self.stats.items(), reverse=True, key=lambda item: len(item[1][type_]))]
+        r = ""
+
+        for i, a in enumerate(s[:3]):
+            i += 1
+            name = requests.get(f"https://api.mojang.com/user/profiles/{a[0]}/names").json()[-1]["name"]
+            r += f"{i}. **{name}** ({a[1]})\n"
+        return r
+
+    def sort_stats(self):
+        return self.generic_sort("stats_by")
+
+    def sort_achievements(self):
+        return self.generic_sort("achievements_by")
