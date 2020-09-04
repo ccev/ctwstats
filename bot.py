@@ -5,6 +5,8 @@ import json
 from discord.ext import commands
 from datetime import datetime
 
+from botstats import Stats
+
 with open("tokens.json", "r") as f:
     tokens = json.load(f)
 
@@ -14,12 +16,14 @@ HYPIXEL_TOKEN = tokens["hypixel_token"]
 bot = commands.Bot(command_prefix="/", case_insensitive=1)
 ach_api = requests.get(f"https://api.hypixel.net/resources/achievements?key={HYPIXEL_TOKEN}&uuid=229f1765-0ca1-4d67-9a41-e7cb198e4832").json()["achievements"]["arcade"]["one_time"]
 
+botstats = Stats()
+
 class Error(Exception):
     pass
 
-async def send_error(ctx, error):
+async def send_error(m, error):
     embed = discord.Embed(description=f"❌ {error}", color=16073282)
-    await ctx.send(embed=embed)
+    await m.edit(embed=embed)
 
 async def send_loading(ctx):
     embed = discord.Embed()
@@ -60,15 +64,15 @@ def get_stats(playername):
 
     except:
         raise Error("Player probably didn't play since Update 1.0 came out")
-    return name, kills, caps, achievements, possible_achs, f"https://visage.surgeplay.com/bust/512/{uuid}"
+    return name, kills, caps, achievements, possible_achs, f"https://visage.surgeplay.com/bust/512/{uuid}", uuid
 
 @bot.command()
 async def stats(ctx, playername):
     m = await send_loading(ctx)
     try:
-        name, kills, caps, achievements, possible_achs, url = get_stats(playername)
+        name, kills, caps, achievements, possible_achs, url, uuid = get_stats(playername)
     except Error as e:
-        await send_error(ctx, e)
+        await send_error(m, e)
         return
 
     embed = discord.Embed(
@@ -77,14 +81,15 @@ async def stats(ctx, playername):
     )
     embed.set_thumbnail(url=url)
     await m.edit(embed=embed)
+    botstats.add_statsquery(uuid, ctx.author.id)
 
 @bot.command(aliases=["a", "ach"])
 async def achievements(ctx, playername):
     m = await send_loading(ctx)
     try:
-        name, kills, caps, achievements, possible_achs, url = get_stats(playername)
+        name, kills, caps, achievements, possible_achs, url, uuid = get_stats(playername)
     except Error as e:
-        await send_error(ctx, e)
+        await send_error(m, e)
         return
 
     embed = discord.Embed(
@@ -102,6 +107,18 @@ async def achievements(ctx, playername):
             inline=False
         )
     await m.edit(embed=embed)
+    botstats.add_achievementsquery(uuid, ctx.author.id)
+
+@bot.command()
+async def credits(ctx):
+    embed = discord.Embed(
+        title="Credits",
+        description="I was developed by <@!211562278800195584> with the help of <@314924973234061313>\n\n**[Invite me](https://discord.com/oauth2/authorize?client_id=750015447788683395&scope=bot)** | **[Fork me on GitHub](https://github.com/ccev/ctwstats)**"
+    )
+    await ctx.send(
+        embed=embed,
+        allowed_mentions=discord.AllowedMentions(users=False)
+    )
 
 """@bot.event
 async def on_message(message):
