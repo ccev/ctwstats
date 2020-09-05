@@ -10,6 +10,12 @@ class Stats():
         with open("stats.json", "w") as f:
             f.write(json.dumps(self.stats, indent=4))
 
+    def is_on_lb(self, uuid):
+        if self.stats.get(uuid, {"leaderboard": False})["leaderboard"]:
+            return True
+        else:
+            return False
+
     def add_generic(self, uuid, user_id, type_):
         if not uuid in self.stats.keys():
             self.stats[uuid] = {

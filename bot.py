@@ -67,25 +67,35 @@ def get_stats(playername):
     return name, kills, caps, achievements, possible_achs, f"https://visage.surgeplay.com/bust/512/{uuid}", uuid
 
 @bot.command()
-async def stats(ctx, playername):
+async def stats(ctx, playername=None):
     m = await send_loading(ctx)
+    if playername is None:
+        await send_error(m, "Please give me a player name. `/stats {playername}`")
+        return
     try:
         name, kills, caps, achievements, possible_achs, url, uuid = get_stats(playername)
     except Error as e:
         await send_error(m, e)
         return
 
+    special = ""
+    if bot_stats.is_on_lb(uuid):
+        special = "🏅 **Leaderboard player**\n\n"
+
     embed = discord.Embed(
         title=f"{name}'s Stats",
-        description=f"Captures: **{caps:,}**\nKills/Assists: **{kills:,}**\nAchievements: **{len(achievements)}/{len(possible_achs)}**"
+        description=f"{special}Captures: **{caps:,}**\nKills/Assists: **{kills:,}**\nAchievements: **{len(achievements)}/{len(possible_achs)}**"
     )
     embed.set_thumbnail(url=url)
     await m.edit(embed=embed)
     bot_stats.add_statsquery(uuid, ctx.author.id)
 
 @bot.command(aliases=["a", "ach"])
-async def achievements(ctx, playername):
+async def achievements(ctx, playername=None):
     m = await send_loading(ctx)
+    if playername is None:
+        await send_error(m, "Please give me a player name. `/achievements {playername}`")
+        return
     try:
         name, kills, caps, achievements, possible_achs, url, uuid = get_stats(playername)
     except Error as e:
@@ -127,7 +137,7 @@ async def botstats(ctx):
 
     embed = discord.Embed(title="Bot Stats")
     embed.add_field(
-        name="Stats Lookups",
+        name="Stat Lookups",
         value=stats
     )
     embed.add_field(
