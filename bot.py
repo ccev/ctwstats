@@ -14,7 +14,7 @@ DISCORD_TOKEN = tokens["discord_token"]
 HYPIXEL_TOKEN = tokens["hypixel_token"]
 
 bot = commands.Bot(command_prefix="/", case_insensitive=1)
-bot.remove_command('help')
+bot.remove_command("help")
 ach_api = requests.get(f"https://api.hypixel.net/resources/achievements?key={HYPIXEL_TOKEN}&uuid=229f1765-0ca1-4d67-9a41-e7cb198e4832").json()["achievements"]["arcade"]["one_time"]
 
 bot_stats = Stats()
@@ -67,7 +67,7 @@ def get_stats(playername):
         raise Error("Player probably didn't play since Update 1.0 came out")
     return name, kills, caps, achievements, possible_achs, f"https://visage.surgeplay.com/bust/512/{uuid}", uuid
 
-@bot.command()
+@bot.command(aliases=["s"])
 async def stats(ctx, playername=None):
     m = await send_loading(ctx)
     if playername is None:
@@ -120,7 +120,7 @@ async def achievements(ctx, playername=None):
     await m.edit(embed=embed)
     bot_stats.add_achievementsquery(uuid, ctx.author.id)
 
-@bot.command()
+@bot.command(aliases=["invite", "github"])
 async def credits(ctx):
     embed = discord.Embed(
         title="Credits",
@@ -134,13 +134,23 @@ async def credits(ctx):
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(
-        title="CTW Stats Commands",
-        description="\u0060/[achievements|a|ach] [playername]\u0060 - Lists the player's CTW achievements\n\u0060/botstats\u0060 - View the most searched players\n\u0060/credits\u0060 - View the creators of this bot!\n\u0060/help\u0060 - View this page\n\u0060/stats [playername]\u0060 - Main statistics command"
+        title="Help",
+        description="""`/stats [playername]` (`/s`)
+        Show the player's CTW stats
+        
+        `/achievements [playername]` (`/a`, `/ach`)
+        Lists the player's CTW achievements
+        
+        `/botstats`
+        View the most searched players
+        
+        `/credits` (`/invite`, `/github`)
+        Shows the creators, GitHub and invite link for this bot
+        
+        `/help`
+        View this page"""
     )
-    await ctx.send(
-        embed=embed,
-        allowed_mentions=discord.AllowedMentions(users=False)
-    )
+    await ctx.send(embed=embed)
 
 @bot.command()
 async def botstats(ctx):
