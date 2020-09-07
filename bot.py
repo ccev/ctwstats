@@ -14,6 +14,7 @@ DISCORD_TOKEN = tokens["discord_token"]
 HYPIXEL_TOKEN = tokens["hypixel_token"]
 
 bot = commands.Bot(command_prefix="/", case_insensitive=1)
+bot.remove_command('help')
 ach_api = requests.get(f"https://api.hypixel.net/resources/achievements?key={HYPIXEL_TOKEN}&uuid=229f1765-0ca1-4d67-9a41-e7cb198e4832").json()["achievements"]["arcade"]["one_time"]
 
 bot_stats = Stats()
@@ -124,6 +125,17 @@ async def credits(ctx):
     embed = discord.Embed(
         title="Credits",
         description="I was developed by <@!211562278800195584> with the help of <@314924973234061313>\n\n**[Invite me](https://discord.com/oauth2/authorize?client_id=750015447788683395&scope=bot)** | **[Fork me on GitHub](https://github.com/ccev/ctwstats)**"
+    )
+    await ctx.send(
+        embed=embed,
+        allowed_mentions=discord.AllowedMentions(users=False)
+    )
+
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(
+        title="CTW Stats Commands",
+        description="\u0060/[achievements|a|ach] [playername]\u0060 - Lists the player's CTW achievements\n\u0060/botstats\u0060 - View the most searched players\n\u0060/credits\u0060 - View the creators of this bot!\n\u0060/help\u0060 - View this page\n\u0060/stats [playername]\u0060 - Main statistics command"
     )
     await ctx.send(
         embed=embed,
