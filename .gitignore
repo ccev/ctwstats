@@ -1,3 +1,6 @@
 tokens.json
 stats.json
 test.py
+tokens.py
+venv*
+idea*
