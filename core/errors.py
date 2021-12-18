@@ -7,4 +7,4 @@ class HypixelError(BotError):
 
 
 class MojangError(BotError):
-    msg = "There was an error contacting Mojang, please try again later"
+    msg = "Sorry, either this player name doesn't exist or Mojang has issues right now."

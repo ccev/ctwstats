@@ -108,11 +108,13 @@ class PlayerView(discord.ui.View):
             inline=False
         )
         self.embed.add_field(
-            name="Command lookups",
+            name="Unique lookups",
             value=f"/stats: **{stats['stats']}**\n/achievements: **{stats['achievements']}**",
             inline=False
         )
-        self.embed.set_footer(text="Note that leaderboard positions are likely to be incorrect. Refer to /info")
+
+        if max(lb["caps"], lb["kills"]) > 30:
+            self.embed.set_footer(text="Note that leaderboard positions are likely to be incorrect. /info")
 
     async def on_timeout(self):
         followup = self.interaction.followup

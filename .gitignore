@@ -3,4 +3,5 @@ stats.json
 test.py
 tokens.py
 venv*
-idea*
+.idea*
+*__pycache__*

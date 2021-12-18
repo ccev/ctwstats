@@ -6,8 +6,9 @@ from core.errors import MojangError
 
 
 class MojangApi:
-    def __init__(self):
+    def __init__(self, bot):
         self.url = "https://api.mojang.com/users/profiles/minecraft/{}"
+        self.bot = bot
 
     async def get_player_info(self, name: str) -> Tuple[str, str]:
         """
@@ -20,4 +21,6 @@ class MojangApi:
                     raise MojangError
 
                 result = await r.json()
-                return tuple(result.values())
+                uuid, name = tuple(result.values())
+                self.bot.player_cache[uuid] = name
+                return uuid, name
