@@ -146,7 +146,8 @@ class InfoCommand(ApplicationCommand, name="info", description="General informat
         ))
         embed.add_field(name="Credits", inline=False, value=(
             "I was made by @Malte#1748 and @qej#8895. Special thanks to Iets and Inventums!\n\n"
-            "[Invite](https://discord.gg)    |    [GitHub](https://github.com/ccev/ctwstats)"
+            "[Invite](https://discordapp.com/channels/911719424455766016/911719424455766019/923648148696596522)"
+            "    |    [GitHub](https://github.com/ccev/ctwstats)"
         ))
         await interaction.response.send_message(embed=embed)
 
