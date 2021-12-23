@@ -10,7 +10,7 @@ from core.mojang import MojangApi
 
 class CTWStats(discord.Client):
     def __init__(self):
-        self._startup = True
+        self._startup = True 
         super().__init__(update_application_commands_at_startup=True)
         self.queries: Queries = Queries(self.loop)
 

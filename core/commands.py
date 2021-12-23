@@ -64,6 +64,7 @@ class Callback:
         bot.player_cache[uuid] = player.name
 
         view = PlayerView(self.interaction, player, self.page)
+        await view.make_embed()
 
         if self.responded:
             while not self.followup_message:
@@ -74,6 +75,8 @@ class Callback:
         else:
             self.responded = True
             await self.interaction.response.send_message(embed=view.embed, view=view)
+
+        return uuid
 
 
 class StatsCommand(ApplicationCommand, name="stats", description="Query a player's stats"):
@@ -86,9 +89,13 @@ class StatsCommand(ApplicationCommand, name="stats", description="Query a player
             yield r
 
     async def callback(self, interaction: discord.Interaction):
-        # TODO botstats
         callback = Callback(self._page, self.player, interaction)
-        await callback.callback()
+        uuid = await callback.callback()
+        keyvals = {
+            "user_id": interaction.user.id,
+            "uuid": uuid
+        }
+        await bot.queries.insert("stats_queried", keyvals)
 
 
 class AchievementsCommand(ApplicationCommand, name="achievements", description="Query a player's achievements"):
@@ -102,7 +109,12 @@ class AchievementsCommand(ApplicationCommand, name="achievements", description="
 
     async def callback(self, interaction: discord.Interaction):
         callback = Callback(self._page, self.player, interaction)
-        await callback.callback()
+        uuid = await callback.callback()
+        keyvals = {
+            "user_id": interaction.user.id,
+            "uuid": uuid
+        }
+        await bot.queries.insert("achievements_queried", keyvals)
 
 
 class BotStatsCommand(ApplicationCommand, name="botstats",
@@ -154,28 +166,24 @@ class FavoriteAddCommand(ApplicationCommand, name="add", parent=FavoriteCommand,
 
     async def callback(self, interaction: discord.Interaction) -> None:
         favorites = bot.favorite_players.get(interaction.user.id)
+        if favorites is None:
+            favorites = bot.favorite_players[interaction.user.id] = set()
         name, uuid = await bot.mojang_api.get_player_info(self.player)
 
-        keyvals = {
-            "user_id": interaction.user.id,
-            "uuid": uuid
-        }
-        # TODO limit favorites
-        if favorites is None:
-            favorites = bot.favorite_players[interaction.user.id] = {uuid}
-            await bot.queries.insert("favorites", keyvals)
-        elif uuid in favorites:
-            await interaction.response.send_message(f"{name} is already in your favorites")
-            return
+        if favorites and len(favorites) >= 20:
+            message = "Sorry, you reached the limit of 20 favorites. Please remove some before adding new ones"
         else:
-            favorites.add(uuid)
-            await bot.queries.insert("favorites", keyvals)
-
-        await interaction.response.send_message(f"Added {name} to your favorites")
-
-    async def command_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        # TODO: error handling
-        await interaction.response.send_message(error.msg)
+            keyvals = {
+                "user_id": interaction.user.id,
+                "uuid": uuid
+            }
+            if uuid in favorites:
+                message = f"**{name}** is already in your favorites"
+            else:
+                favorites.add(uuid)
+                await bot.queries.insert("favorites", keyvals)
+                message = f"Added **{name}** to your favorites"
+        await interaction.response.send_message(embed=discord.Embed(description=message))
 
 
 class FavoriteRemoveCommand(ApplicationCommand, name="remove", parent=FavoriteCommand,
@@ -190,13 +198,16 @@ class FavoriteRemoveCommand(ApplicationCommand, name="remove", parent=FavoriteCo
     async def callback(self, interaction: discord.Interaction) -> None:
         favorites = bot.favorite_players.get(interaction.user.id)
         if not favorites:
-            await interaction.response.send_message("You don't have any favorites")
-            return
-        name, uuid = await bot.mojang_api.get_player_info(self.player)
-
-        if favorites is None or uuid not in favorites:
-            await interaction.response.send_message(f"{name} is not in your favorites")
+            message = "You don't have any favorites"
         else:
-            favorites.remove(uuid)
-            await interaction.response.send_message(f"Removed {name} from your favorites")
-        # TODO responses, db
+            name, uuid = await bot.mojang_api.get_player_info(self.player)
+
+            if favorites is None or uuid not in favorites:
+                message = f"**{name}** is not in your favorites"
+            else:
+                favorites.remove(uuid)
+                await bot.queries.execute("DELETE FROM favorites WHERE uuid = %s AND user_id = %s",
+                                          commit=True, result=False, args=(uuid, interaction.user.id))
+                message = f"Removed **{name}** from your favorites"
+
+        await interaction.response.send_message(embed=discord.Embed(description=message))

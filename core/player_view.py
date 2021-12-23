@@ -34,17 +34,13 @@ class PlayerView(discord.ui.View):
         self.author = interaction.user.id
         self.select = CategorySelect(page)
         self.add_item(self.select)
-        self.default_embed()
 
-    def default_embed(self):
+    async def make_embed(self):
         if self.select.current_page == 0:
             self.make_stat_embed()
         elif self.select.current_page == 1:
             self.make_achievement_embed()
-
-    async def make_embed(self):
-        self.default_embed()
-        if self.select.current_page == 2:
+        elif self.select.current_page == 2:
             await self.make_botstats_embed()
 
     def make_stat_embed(self):
