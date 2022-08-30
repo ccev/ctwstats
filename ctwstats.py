@@ -22,6 +22,6 @@ async def command_error(self, interaction: discord.Interaction, error: Exception
 for command in [StatsCommand, AchievementsCommand, BotStatsCommand, LeaderboardCommand, InfoCommand,
                 FavoriteCommand, FavoriteAddCommand]:
     command.command_error = command_error
-    bot.add_application_command(command, guild_id=497894919864713226)
+    bot.add_application_command(command)
 
 bot.run(tokens.DISCORD)
